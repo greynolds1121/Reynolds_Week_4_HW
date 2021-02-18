@@ -111,11 +111,16 @@ ggmap(world) +
                  y = Latitude, 
                  color = ownership_type), 
              alpha = .4, 
-             size = .1) 
+             size = 1) +
+  labs(title = "Worldwide Starbucks Locations and Ownership Type", 
+       color = "Ownership Type", 
+       x = "",
+       y = "")
              
 
 ```
 
+**Observations:** It appears that most Starbucks are either company owned or licensed. As far as I can tell, there are very few franchise Starbucks. North America and Europe are particularly dominated by licensed and company owned stores. Interestingly, stores that are joint ventures are mostly found in Eastern Europe, S. Asia, and E. Asia. There are very few Starbucks in S.America and Africa-- two areas that produce a lot of coffee beans. It's difficult to deduce much beyond these spatial distribution patterns. 
 
   2. Construct a new map of Starbucks locations in the Twin Cities metro area (approximately the 5 county metro area).  
   
@@ -132,13 +137,14 @@ Starbucks_TC <- Starbucks_Clean %>%
 ggmap(twin_cities) + 
   geom_point(data = Starbucks_TC, 
              aes(x = Longitude, 
-                 y = Latitude))  
-  
-
+                 y = Latitude)) +
+  labs(title = "Starbucks in the Twin Cities")
 ```
 
 
   3. In the Twin Cities plot, play with the zoom number. What does it do?  (just describe what it does - don't actually include more than one map).  
+  
+**Discussion:** The zoom number changes the level of detail in the map. The higher the number, the more zoomed in the map is, and the more detail it provides. As the number decreases, the map zooms out, showing a greater area but with less detail. 
 
   4. Try a couple different map types (see `get_stamenmap()` in help and look at `maptype`). Include a map with one of the other map types. 
   
@@ -151,11 +157,12 @@ twin_cities2 <- get_stamenmap(
 ggmap(twin_cities2) + 
   geom_point(data = Starbucks_TC, 
              aes(x = Longitude, 
-                 y = Latitude)) 
-
+                 y = Latitude), 
+             color = "red") +
+  labs(title = "Starbucks in the Twin Cities", 
+       x = "", 
+       y = "")
 ```
-
-  
 
   5. Add a point to the map that indicates Macalester College and label it appropriately. There are many ways you can do think, but I think it's easiest with the `annotate()` function (see `ggplot2` cheatsheet).
   
@@ -164,19 +171,23 @@ ggmap(twin_cities2) +
   geom_point(data = Starbucks_TC, 
              aes(x = Longitude, 
                  y = Latitude), 
-              size = .5) +
+             size = .5, 
+             color = "dark green") +
   annotate("point",
            x = -93.1691, 
            y = 44.9379, 
            label = "Macalester College", 
-           color = "Red", 
+           color = "orange", 
            size = 3) +
    annotate("text",
            x = -93.1691, 
            y = 44.92, 
            label = "Macalester College", 
-           color = "Red", 
-           size = 3) 
+           color = "orange", 
+           size = 3) +
+  labs(title = "Starbucks in TC + Macalester College", 
+       x = "", 
+       y = "")
 ```
 
 
@@ -198,6 +209,10 @@ starbucks_with_2018_pop_est <-
 ```
 
   6. **`dplyr` review**: Look through the code above and describe what each line of code does.
+  
+**Answer:** The first line of code reads in the csv file and creates a data frame with its information called 'census_pop_est_2018.' Following that line of code, the next one use the separate function to turn the 'state' column into two separate columns that separate the state name from the period in front of it. Next, the select function is used to select all variables in the data frame except the period, which in this case means its just the state name. Then, you use the mutate function to essentially change the state variable using the str_to_lower function to make all the states' names be in lower case. 
+
+The code of chunk that follows creates a new data frame called 'starbucks_with_2018_pop_est' by piping into the starbucks_us_by_state data frame. From it, this new data frame uses the left_join function to append the starbucks_us_by_state data frame with the variables from the census_pop_est_2018 data frame. These data sets are joined by identifying the unique id that is shared between the two of the data sets, in this case 'state name' and 'state', and appending the information based on this shared variable. The new data set is then given another variable with the mutate function called 'starbucks_per_10000.' This new variable calculates the number of Starbucks per 10000 people by dividing the number of stores in each state by the population of each state, and then multiplying that by 10000.  
 
   7. Create a choropleth map that shows the number of Starbucks per 10,000 people on a map of the US. Use a new fill color, add points for all Starbucks in the US (except Hawaii and Alaska), add an informative title for the plot, and include a caption that says who created the plot (you!). Make a conclusion about what you observe.
 
@@ -227,13 +242,15 @@ Starbucks_US_Points %>%
              color = "grey",
              size = 1, 
              alpha = .5) +
-  theme(legend.background = element_blank()) +
+  theme(legend.background = element_blank(), 
+        legend.position = 'right') +
   labs(title = "Starbucks per 10,000 People", 
        caption = "Gabriel Reynolds", 
-       fill = "Starbucks per 10,000")
+       fill = "Starbucks per 10,000 People")
 
 ```
 
+**Discussion:** Interestingly, there is a higher number of Starbucks per 10,000 people in the western part of the US than anywhere else. Visually, it appears that there are many more stores in the East, but considering the population distribution, apparently there are more Starbucks per people in the West, which I suppose makes sense because of Starbucks' founding in Seattle. Colorado also stands out as a state with a very high number of stores per 10,000 people, which I wasn't expecting. 
 
 ### A few of your favorite things (`leaflet`)
 
@@ -255,17 +272,17 @@ favorite_places <- tibble(
   top_3 = c(TRUE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
 )
 
-pal <- colorNumeric(palette=c("cornflowerblue", "darkgoldenrod1"), 
+pal <- colorFactor(palette=c("blue", "orange"), 
                      domain = favorite_places$top_3)
 
 leaflet(favorite_places) %>% 
-  addTiles() %>% 
+  addProviderTiles(providers$Stamen.Toner) %>% 
   addCircles(label = ~name,
              color = ~pal(top_3)) %>% 
-  addLegend("topleft", colors="darkgoldenrod1", values = ~top_3, bins=1, labels="Top 3 Favorite Places") %>%
-  addPolylines(lng=c(-93.209, -93.255848, -93.154268, -93.274030, -90.337863, -87.194083, -92.097201, -93.255249, -93.187747, -93.166682),
-               lat=c(44.915001, 44.982000, 44.982330, 44.958326, 47.751534, 44.985930, 46.788668, 44.984456, 44.991583, 44.891313),
-               color="gray", weight=2)
+  addLegend("topleft", pal = pal, values = ~top_3, bins=1, title = "Top 3 Favorite Places") %>%
+  addPolylines(lng = c(-93.209, -93.274030, -93.255848, -93.255249, -92.097201, -90.337863, -87.194083, -93.166682, -93.154268, -93.187747), 
+               lat = c(44.915001,44.958326, 44.982000, 44.984456, 46.788668, 47.751534, 44.985930, 44.891313, 44.982330, 44.99158),
+               color="purple", weight = 3)
 
 ```
 
@@ -339,6 +356,8 @@ leaflet(CasualTrips) %>%
              opacity = 1) %>% 
   addLegend("bottomleft", pal = pal3, values = ~prop_casual, bins = 6, title = "Proportion of Casual Clients")
 ```
+
+**Observations:** With the map, it's clearer to identify which stations have higher proportions of causal clients and why. It appears that the stations with the highest proportion of casual clients are around key tourist attractions in D.C. For instance, there are stations around the main Mall, the Washington Monument, the MLK Memorial, the Lincoln Memorial, and the Capitol Building all with notably higher proportions of casual clients. This makes sense as tourists will be more likely to visit these areas and choose to commute with bikes.  
   
 ### COVID-19 data
 
@@ -358,10 +377,15 @@ covid19 %>%
            aes(map_id = region,
                fill = cum_cases)) +
   expand_limits(x = StatesMap$long, y = StatesMap$lat) + 
-  theme_map()
-
+  theme_map() + 
+  labs(title = "COVID-19 Cases by State", 
+       x = "", 
+       y = "", 
+       fill = "Total Cumulative Cases by State") +
+  theme(legend.position = "right")
 ```
 
+**Discussion:** This map shows the number of cumulative COVID-19 cases by state. From the map, we can see that California, Texas, New York, Florida, and Illinois are amonng the states with the most cases in the US. The issue with this map is that it's looking at raw counts of cases per state, rather than a per capita measure (a rate). Only looking at raw data will make it such that the most populous states will always appear to be the most in magnitude. IT wouldn't be fair to compare raw counts of covid cases between California and Wyoming, the population sizes are drastically different. It would be more appropriate to look at a standardized measure or rate of COVID cases instead. 
 
   12. Now add the population of each state to the dataset and color the states by most recent cumulative cases/10,000 people. See the code for doing this with the Starbucks data. You will need to make some modifications. 
   
@@ -380,7 +404,12 @@ covid19_with_pop_est %>%
            aes(map_id = state,
                fill = cases_per_10000)) +
   expand_limits(x = StatesMap$long, y = StatesMap$lat) + 
-  theme_map()
+  theme_map() + 
+  labs(title = "COVID-19 Cases per 10,000 People by State", 
+       x = "", 
+       y = "", 
+       fill = "Total Cumulative Cases per 10000 People by State") +
+  theme(legend.position = "bottom")
 ```
 
   
@@ -406,11 +435,16 @@ covid_4day_sample %>%
                fill = cases_per_10000)) +
   expand_limits(x = StatesMap$long, y = StatesMap$lat) + 
   theme_map() +
-  theme(legend.position = "right")+
+  labs(title = "COVID-19 Cases per 10,000 People by State", 
+       x = "", 
+       y = "", 
+       fill = "Total Cumulative Cases per 10000 People by State") +
+  theme(legend.position = "bottom")+
   facet_wrap(vars(date))
   
 ```
 
+**Discussion:** You can see from the maps that Covid cases per 10,000 have drastically increased since the beginning of the pandemic. Because the scale is fixed for each of the maps, its bound to the upper limits of the most recent case counts, which are much much higher than to start. This causes the initial maps in the earlier months of the pandemic to appear as if the cases were very low, though this is only a result of the high cases numbers today. As such, we're unable to see the gradation in the severity of cases across states until about October, which still doesn't provide a ton of clarity around which states are doing worse/better than others. You can see throughout these maps, however, that the Pacific Northwest has consistently low cases throughout this time period sample. I'm surprised to see how high the cases per 10,000 has gotten for the Dakotas, it appears they are among the highest case counts in the country. 
 
 ## Minneapolis police stops
 
@@ -452,14 +486,91 @@ leaflet(MplsStops) %>%
 
   16. Save the folder from moodle called Minneapolis_Neighborhoods into your project/repository folder for this assignment. Make sure the folder is called Minneapolis_Neighborhoods. Use the code below to read in the data and make sure to **delete the `eval=FALSE`**. Although it looks like it only links to the .sph file, you need the entire folder of files to create the `mpls_nbhd` data set. These data contain information about the geometries of the Minneapolis neighborhoods. Using the `mpls_nbhd` dataset as the base file, join the `mpls_suspicious` and `MplsDemo` datasets to it by neighborhood (careful, they are named different things in the different files). Call this new dataset `mpls_all`.
 
-```{r, eval=FALSE}
+```{r}
 mpls_nbhd <- st_read("Minneapolis_Neighborhoods/Minneapolis_Neighborhoods.shp", quiet = TRUE)
 ```
 
+```{r}
+mpls_suspicious_full <- mpls_suspicious %>% 
+  left_join(MplsStops,
+            by="neighborhood")
+
+mpls_nbhd_copy <- mpls_nbhd %>% 
+  left_join(mpls_suspicious_full,
+            by=c("BDNAME"="neighborhood"))
+
+mpls_all <- mpls_nbhd_copy %>% 
+  left_join(MplsDemo, 
+            by=c("BDNAME"="neighborhood"))
+```
+
+
   17. Use `leaflet` to create a map from the `mpls_all` data  that colors the neighborhoods by `prop_suspicious`. Display the neighborhood name as you scroll over it. Describe what you observe in the map.
   
-  18. Use `leaflet` to create a map of your own choosing. Come up with a question you want to try to answer and use the map to help answer that question. Describe what your map shows. 
+```{r}
+  pal5 <- colorBin(palette="Greens",
+                 domain = mpls_all$prop_sus,
+                 bins=6)
+
+leaflet(mpls_all) %>% 
+  addProviderTiles(providers$Stamen.Toner) %>% 
+  addCircles(lng = ~long,
+             lat = ~lat,
+             radius = 3,
+             stroke=FALSE, 
+             label = ~BDNAME,
+             color = ~pal5(prop_sus),
+             opacity=1) %>% 
+  addLegend("topleft", values = ~prop_sus, pal=pal5, bins=6, title="Proportion of Suspicious Police Stops")
   
+```
+
+**Observations:** The Neighborhoods that appear to have the highest proportion of police stops for people deemed suspicious are clustered around the downtown area and the neighborhoods in south Minneapolis that are along 35W such as East Phillips, Central, Powderhorn Park, Seward, Longfelllow, and Corcoran. There are few stops for 'suspicious' people in Northeast Minneapolis and around other parts near the U of M campus. Same with chain of lakes area. From personally living in the Twin Cities all my life, I know these trends to roughly equate to the affluence of these neighborhoods. The neighborhoods with wealthier people tend to have lower proportions of stops for people who are 'suspicious.' 
+  
+  18. Use `leaflet` to create a map of your own choosing. Come up with a question you want to try to answer and use the map to help answer that question. Describe what your map shows. 
+
+**Question:** Are police stops in certain neighborhoods more likely to result in a vehicle search than other neighborhoods? 
+
+```{r}
+VehicleSearched <- MplsStops %>%
+  filter(!is.na(vehicleSearch)) %>% 
+  mutate(search_yes = vehicleSearch == "YES") %>% 
+  group_by(neighborhood) %>% 
+  summarize(n_stops = n(), 
+            v_search_yes = sum(search_yes == TRUE), 
+            prop_search_yes = v_search_yes/n_stops) %>% 
+  arrange(desc(prop_search_yes))
+
+VehicleSearched_full <- VehicleSearched %>% 
+  left_join(MplsStops,
+            by="neighborhood")
+
+VehicleSearched_nbhd <- mpls_nbhd %>% 
+  left_join(VehicleSearched_full,
+            by=c("BDNAME"="neighborhood"))
+
+VehicleSearchedAll <- VehicleSearched_nbhd %>% 
+  left_join(MplsDemo, 
+            by=c("BDNAME"="neighborhood"))
+
+pal6 <- colorBin(palette = "Greens", 
+                    domain = VehicleSearchedAll$prop_search_yes, 
+                    bins = 6)
+
+leaflet(VehicleSearchedAll) %>% 
+  addProviderTiles(providers$Stamen.Toner) %>% 
+  addCircles(lng = ~long,
+             lat = ~lat,
+             radius = 3,
+             stroke=FALSE, 
+             label = ~BDNAME,
+             color = ~pal6(prop_search_yes),
+             opacity=1) %>% 
+  addLegend("topright", values = ~prop_search_yes, pal=pal6, bins=1, title="Proportion of Stops that Led to a Vehicle Search")
+  
+```
+
+**Discussion:** My map illustrates the proportion of stops by the police that result in a vehicle search, categorized by neighborhood in Minneapolis. Areas on the map that are darker indicate a higher proportion of total stops that result in a vehicle search. From the map, we can see a clear spatial pattern. Vehicle searches happen at a higher rate in North Minneapolis and the Phillips Neighborhood than the rest of Minneapolis. Without more context and data analysis, it might be erroneous of me to make any causal inferences. I do suspect, however, that this is indicative of a racial imbalance in the proportion of vehicle searches that occur as North Minneapolis and the Phillips neighborhood have a higher percentage of POC living in these areas. We can definitely see that there is disparity in terms of the rate at which vehicle searches occur across neighborhoods. I would be curious to see how different the map might be and how different the rates might be if I had calculated for any search, whether of a person or of a vehicle. 
   
 ## GitHub link
 
