@@ -8,11 +8,13 @@ output:
     toc_float: TRUE
     df_print: paged
     code_download: true
+    code_folding: hide 
+    theme: yeti
 ---
 
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=FALSE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -576,5 +578,6 @@ leaflet(VehicleSearchedAll) %>%
 
   19. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 04_exercises.Rmd, provide a link to the 04_exercises.md file, which is the one that will be most readable on GitHub.
 
+**Link:** https://github.com/greynolds1121/Reynolds_Week_4_HW/blob/main/04_exercises.md
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
